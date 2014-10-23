@@ -1,0 +1,49 @@
+# folders #
+##################
+data
+
+
+# OS files
+*/.DS_Store
+.DS_Store
+.DS_Store?
+Thumbs.db
+
+# python compiled files #
+######################
+*.py[cod]
+
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# shell codes
+*.bat
+*.sh
+
+# private file
+*.docx

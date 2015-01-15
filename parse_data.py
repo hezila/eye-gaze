@@ -8,6 +8,11 @@ from optparse import OptionParser
 
 from utils import *
 
+att_keys = ['price', 'manufacture', 'operating_system',
+            'battery_life', 'display_size', 'hard_drive',
+            'memory', 'processor_class', 'processor_speed',
+            'weight']
+
 def process_session(session):
     prd_freqs ={}
     prd_ds = {}
@@ -18,9 +23,37 @@ def process_session(session):
     m = {}
     m['freq'] = 0.0
     m['duration'] = 0.0
+    m['avg_freq'] = 0.0
     m['indegree'] = 0.0
     m['outdegree'] = 0.0
     m['degree'] = 0.0
+
+    att_freqs = {}
+    att_ds = {}
+
+    for x in att_keys:
+        att_freqs[x] = 0.0
+        att_ds[x] = 0.0
+
+    n = {}
+    n['freq'] = 0.0
+    n['ds'] = 0.0
+    n['avg'] = 0.0
+
+    vp = 0.0
+    vpc = 0.0
+    vnp = 0.0
+    vnpc = 0.0
+
+    zero_crit = 0.0
+    zero_keep = 0.0
+    zero_any = 0.0
+    zeros = 0.0
+
+    keep_zero = 0.0
+    keeps = 0.0
+
+
 
     pre_pid = None
     pids = []
@@ -45,7 +78,7 @@ def process_session(session):
 
         pre_pid = pid
 
-        d = r[17] # duration
+        d = float(r[17]) # duration
         if pid not in prd_freqs:
             prd_freqs[pid] = 1
             prd_ds[pid] = d
@@ -53,16 +86,106 @@ def process_session(session):
             prd_freqs[pid] += 1
             prd_ds[pid] += d
 
+
+        att_fixated = r[5:15]
+
+
+        if '1' in att_fixated:
+            fi = att_fixated.index('1')
+            ak = att_keys[fi]
+
+            if ak not in att_freqs:
+                att_freqs[ak] = 1.0
+                att_ds[ak] = d
+            else:
+                att_freqs[ak] += 1.0
+                att_ds[ak] += d
+
+
         critique_pid = r[31] # critiqued product
 
         if len(critique_pid) > 0: # the last line
+            critiques = r[19:29]
+
+            crits = []
+            for ci, c in enumerate(critiques):
+                if c.startswith('<>'):
+                    crits.append(1)
+                elif c.startswith('<'):
+                    crits.append(1)
+                elif c.startswith('>'):
+                    crits.append(1)
+                elif c.startswith('any'):
+                    if att_freqs[att_keys[ci]] < 0.001:
+                        vp += 1.0
+                    vpc += 1.0
+                else:
+                    crits.append(0)
+
+                ck = att_keys[ci]
+
+                if len(c.strip()) == 0:
+                    keeps += 1.0
+                    if att_freqs[ck] <= 0.001:
+                        keep_zero += 1.0
+
+
+                if att_freqs[ck] <= 0.001:
+                    zeros += 1.0
+                    if c.startswith('any'):
+                        zero_any += 1.0
+                    elif len(c.strip()) == 0:
+                        zero_keep += 1.0
+                    else:
+                        zero_crit += 1
+
+            for ai, ak in enumerate(att_keys):
+                if att_freqs[ak] < 0.001:
+                    vnpc += 1.0
+                    if critiques[ai] == 'any':
+                        vnp += 1.0
+
+            freq_orders = order_dict(att_freqs)[::-1]
+            ds_orders = order_dict(att_ds)[::-1]
+
+            att_avgs = {}
+            for ak in att_keys:
+                if att_freqs[ak] < 0.0001:
+                    att_avgs[ak] = 0.0
+                else:
+                    att_avgs[ak] = att_ds[ak]/att_freqs[ak]
+
+            avg_orders = order_dict(att_avgs)[::-1]
+            for ci, cv in enumerate(crits):
+                if cv != 0:
+                    k = att_keys[ci]
+                    rank = freq_orders.index(k) + 1
+                    n['freq'] += 1.0/rank
+
+                    rank = ds_orders.index(k) + 1
+                    n['ds'] += 1.0/rank
+
+                    rank = avg_orders.index(k) + 1
+                    n['avg'] += 1.0/rank
+
+            print '\t'.join(critiques)
+            print '%s' % ('\t'.join([str(att_freqs[x]) for x in att_keys]))
+            print '%s' % ('\t'.join(['%.2f' % att_ds[x] for x in att_keys]))
+            print '%s' % ('\t'.join(['%.2f' % (att_ds[x]/(att_freqs[x] + 0.001)) for x in att_keys]))
+            print
+
+
             if critique_pid not in pids:
                 m['freq'] = 0.0
                 m['duration'] = 0.0
+                m['avg_freq'] = 0.0
                 m['indegree'] = 0.0
                 m['outdegree'] = 0.0
                 m['degree'] = 0.0
-                return m
+
+                return (m, n, vp, vpc, vnp, vnpc, zero_crit, zero_keep, zero_any, zeros, keep_zero, keeps)
+
+
 
 
             # fixation freq
@@ -76,6 +199,12 @@ def process_session(session):
             orders = order_dict(prd_ds)[::-1]
             l = ['%s' % (k) for k in orders]
             m['duration'] = 1.0 / (orders.index(critique_pid) + 1.0)
+
+            prd_avgs = {}
+            for pk in prd_freqs.keys():
+                prd_avgs[pk] = prd_ds[pk]/(prd_freqs[pk] + 0.0)
+            orders = order_dict(prd_avgs)[::-1]
+            m['avg_freq'] = 1.0 / (orders.index(critique_pid) + 1.0)
 
 
             # indgree
@@ -109,7 +238,7 @@ def process_session(session):
 
 
             #m = 1.0 / (orders.index(critique_pid) + 1.0)
-            return m
+            return (m, n, vp, vpc, vnp, vnpc, zero_crit, zero_keep, zero_any, zeros, keep_zero, keeps)
 
 
 
@@ -138,10 +267,33 @@ def main():
     m_scores = {}
     m_scores['freq'] = 0.0
     m_scores['duration'] = 0.0
+    m_scores['avg_freq'] = 0.0
     m_scores['indegree'] = 0.0
     m_scores['outdegree'] = 0.0
     m_scores['degree'] = 0.0
     m_count = 0
+
+    n_scores = {}
+    n_scores['freq'] = 0.0
+    n_scores['ds'] = 0.0
+    n_scores['avg'] = 0.0
+
+    total_p = 0.0
+    total_pc = 0.0
+    total_np = 0.0
+    total_npc = 0.0
+
+
+    total_zero_crit = 0.0
+    total_zero_keep = 0.0
+    total_zero_any = 0.0
+
+    total_zeros = 0.0
+
+    total_keep_zero = 0.0
+    total_keeps = 0.0
+
+
     for line in input:
         if index == 0: # header
             index += 1
@@ -151,16 +303,40 @@ def main():
         if items[0].startswith("Session"): # session begin
 
             if len(session) > 0:
-                m = process_session(session)
+                result = process_session(session)
+                if result is None:
+                    m = None
+                    n = None
+                else:
+                    m, n, p, pc, np, npc, zero_crit, zero_keep, zero_any, zeros, keep_zero, keeps = result
+
+                    total_p += p
+                    total_pc += pc
+                    total_np += np
+                    total_npc += npc
+
+                    total_zero_crit += zero_crit
+                    total_zero_keep += zero_keep
+                    total_zero_any += zero_any
+                    total_zeros += zeros
+
+                    total_keep_zero += keep_zero
+                    total_keeps += keeps
+
                 if m is not None:
                     for mk in m:
                         m_scores[mk] += m[mk]
 
                     m_count += 1
+                if n is not None:
+                    for nk in n:
+                        n_scores[nk] += n[nk]
+
                 if uid not in user_sessions:
                     user_sessions[uid] = [session]
                 else:
                     user_sessions[uid].append(session)
+
                 session = [items]
 
             else:
@@ -171,11 +347,23 @@ def main():
         uid = items[-3]
     print "#############################"
     print 'Critique count: %d' % m_count
-    print "MAP: %.3f\t%.3f\t%.3f\t%.3f\t%.3f" % (m_scores['freq']/m_count,
+    print "MAP: %.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f" % (m_scores['freq']/m_count,
                             m_scores['duration']/m_count,
+                            m_scores['avg_freq']/m_count,
                             m_scores['indegree']/m_count,
                             m_scores['outdegree']/m_count,
                             m_scores['degree']/m_count)
+    print 'MAP: %.3f\t%.3f\t%.3f\n' % (n_scores['freq']/m_count,
+                            n_scores['ds']/m_count,
+                            n_scores['avg']/m_count)
+
+    print 'prob("zero" -> "any")=%.3f' % (total_np/total_npc)
+    print 'prob("any" -> "zero")=%.3f' % (total_p/total_pc)
+
+    print 'prob("zero" -> "crit")=%.3f' % (total_zero_crit/total_zeros)
+    print 'prob("zero" -> "keep")=%.3f' % (total_zero_keep/total_zeros)
+    print 'prob("keep" -> "zero")=%.3f' % (total_keep_zero/total_keeps)
+    print 'prob("zero" -> "any")=%.3f' % (total_zero_any/total_zeros)
 
 if __name__ == '__main__':
     main()

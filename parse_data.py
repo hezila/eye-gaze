@@ -175,71 +175,24 @@ def process_session(session):
             print
 
 
-            if critique_pid not in pids:
-                m['freq'] = 0.0
-                m['duration'] = 0.0
-                m['avg_freq'] = 0.0
-                m['indegree'] = 0.0
-                m['outdegree'] = 0.0
-                m['degree'] = 0.0
-
-                return (m, n, vp, vpc, vnp, vnpc, zero_crit, zero_keep, zero_any, zeros, keep_zero, keeps)
 
 
 
 
             # fixation freq
             orders = order_dict(prd_freqs)[::-1]
-            l = ['%s:%d' % (k, prd_freqs[k]) for k in orders]
-            m['freq'] = 1.0 / (orders.index(critique_pid) + 1.0)
+            # l = ['%s:%d' % (k, prd_freqs[k]) for k in orders]
+            # m['freq'] = 1.0 / (orders.index(critique_pid) + 1.0)
 
-
+            print orders
+            print '<>>>>>>>>>'
 
             # fixatuion duration
             orders = order_dict(prd_ds)[::-1]
             l = ['%s' % (k) for k in orders]
             m['duration'] = 1.0 / (orders.index(critique_pid) + 1.0)
 
-            prd_avgs = {}
-            for pk in prd_freqs.keys():
-                prd_avgs[pk] = prd_ds[pk]/(prd_freqs[pk] + 0.0)
-            orders = order_dict(prd_avgs)[::-1]
-            m['avg_freq'] = 1.0 / (orders.index(critique_pid) + 1.0)
-
-
-            # indgree
-            orders = order_dict(prd_in)[::-1]
-            l = ['%s:%d' % (k, prd_in[k]) for k in orders]
-            m['indegree'] = 1.0 / (orders.index(critique_pid) + 1.0)
-
-
-            # outdegree
-            orders = order_dict(prd_out)[::-1]
-            l = ['%s:%d' % (k, prd_out[k]) for k in orders]
-            m['outdegree'] = 1.0 / (orders.index(critique_pid) + 1.0)
-
-            prd_inout = {}
-            for p in pids:
-                if p not in prd_in:
-                    s = 0.0
-                else:
-                    s = prd_in[p]
-                if p not in prd_out:
-                    o = 0.0
-                else:
-                    o = prd_out[p]
-                prd_inout[p] = (math.log(s+2.0) + .0)/(math.log(o+2.0) + .0)
-
-            orders = order_dict(prd_inout)[::-1]
-            m['degree'] = 1.0/ (orders.index(critique_pid) + 1.0)
-
-
-            # print '[%s] -> %s' % (', '.join(l), critique_pid)
-
-
-            #m = 1.0 / (orders.index(critique_pid) + 1.0)
-            return (m, n, vp, vpc, vnp, vnpc, zero_crit, zero_keep, zero_any, zeros, keep_zero, keeps)
-
+            return None
 
 
         best_select_pid = r[29] # best or selected product
@@ -304,33 +257,8 @@ def main():
 
             if len(session) > 0:
                 result = process_session(session)
-                if result is None:
-                    m = None
-                    n = None
-                else:
-                    m, n, p, pc, np, npc, zero_crit, zero_keep, zero_any, zeros, keep_zero, keeps = result
 
-                    total_p += p
-                    total_pc += pc
-                    total_np += np
-                    total_npc += npc
-
-                    total_zero_crit += zero_crit
-                    total_zero_keep += zero_keep
-                    total_zero_any += zero_any
-                    total_zeros += zeros
-
-                    total_keep_zero += keep_zero
-                    total_keeps += keeps
-
-                if m is not None:
-                    for mk in m:
-                        m_scores[mk] += m[mk]
-
-                    m_count += 1
-                if n is not None:
-                    for nk in n:
-                        n_scores[nk] += n[nk]
+                print 'session'
 
                 if uid not in user_sessions:
                     user_sessions[uid] = [session]
@@ -345,25 +273,6 @@ def main():
             session.append(items)
 
         uid = items[-3]
-    print "#############################"
-    print 'Critique count: %d' % m_count
-    print "MAP: %.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f" % (m_scores['freq']/m_count,
-                            m_scores['duration']/m_count,
-                            m_scores['avg_freq']/m_count,
-                            m_scores['indegree']/m_count,
-                            m_scores['outdegree']/m_count,
-                            m_scores['degree']/m_count)
-    print 'MAP: %.3f\t%.3f\t%.3f\n' % (n_scores['freq']/m_count,
-                            n_scores['ds']/m_count,
-                            n_scores['avg']/m_count)
-
-    print 'prob("zero" -> "any")=%.3f' % (total_np/total_npc)
-    print 'prob("any" -> "zero")=%.3f' % (total_p/total_pc)
-
-    print 'prob("zero" -> "crit")=%.3f' % (total_zero_crit/total_zeros)
-    print 'prob("zero" -> "keep")=%.3f' % (total_zero_keep/total_zeros)
-    print 'prob("keep" -> "zero")=%.3f' % (total_keep_zero/total_keeps)
-    print 'prob("zero" -> "any")=%.3f' % (total_zero_any/total_zeros)
 
 if __name__ == '__main__':
     main()

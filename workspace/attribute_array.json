@@ -1,0 +1,59 @@
+[
+  {
+    "name": "manufacturer",
+    "type": "string",
+    "default": "all"
+  },
+  {
+    "name": "price",
+    "type": "float",
+    "default": 1067.5,
+    "range": 2968
+  },
+  {
+    "name": "operating_system",
+    "type": "string",
+    "default": "all"
+  },
+  {
+    "name": "battery_life",
+    "type": "float",
+    "default": 5,
+    "range": 7.5
+  },
+  {
+    "name": "display_size",
+    "type": "float",
+    "default": 14.1,
+    "range": 15.6
+  },
+  {
+    "name": "hard_drive_capacity",
+    "type": "float",
+    "default": 160,
+    "range": 380
+  },
+  {
+    "name": "installed_memory",
+    "type": "float",
+    "default": 1,
+    "range": 3.75
+  },
+  {
+    "name": "processor_class",
+    "type": "string",
+    "default": "all"
+  },
+  {
+    "processor_speed": "processor_speed",
+    "type": "float",
+    "default": 1.8,
+    "range": 2.214
+  },
+  {
+    "name": "weight",
+    "type": "float",
+    "default": 2.7,
+    "range": 6.456
+  }
+]

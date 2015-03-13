@@ -26,24 +26,15 @@ from optparse import OptionParser
 from utils import *
 from data import *
 
-def estimate(session, prds):
-    prefs = session.prefs
-
-    cid = session.cid # critiqued pid
-    cprd = prds[cid]
-    cvalues = value_functions(cprd, prefs)
-
-    return None
 
 def main():
     usage = "usage prog [options] arg"
     parser = OptionParser(usage=usage)
-    parser.add_option("-s", "--session", dest="session_file",
+    parser.add_option("-i", "--input", dest="input_file",
         help="the input file")
     parser.add_option("-p", "--prds", dest="prds_file",
         help="the product file")
-    parser.add_option("-a", "--att", dest="atts_file",
-        help="the att file")
+    
     # parser.add_option('-f', "--fixation", dest="fixation",
     #     help="the fixation folder")
     # parser.add_option("-o", "--output", dest="output",
@@ -53,33 +44,45 @@ def main():
 
     (options, remainder) = parser.parse_args()
 
-    atts = load_atts(options.atts_file)
-    print 'att: %d' % len(atts)
 
-    prds = load_prds(options.prds_file, atts)
-    print 'prds: %d' % len(prds)
+    pres = 0.0
+    recalls = 0.0
 
-    sessions = load_sessions(options.session_file, atts)
-    for s in sessions:
-        prefs = s.prefs
+    count = 0.0
 
-        cid = s.cid
-        pids = s.pids
-        cprd = prds[cid]
+    k = 9
 
-        prds_list = [prds[pid] for pid in pids]
-        for prd in prds_list:
-            print '%s: %.3f\t' % (prd['id'], utility(prd, prefs, atts)),
-        print '#################'
+    lines = open(options.input_file, 'r')
+    for i, line in enumerate(lines):
+        if i == 0:
+            continue
+        items = line.strip().split(',')
+        # print items[:10]
+        scores = [int(x) for x in items[:10]]
+        
+        atts = []
+        # print items[10:]
+        for j, item in enumerate(items[10:]):
+            if item != '' and item != '?':
+                atts.append(j)
 
+        # print atts
+        order_list = order(scores)
+        hits = 0.0
+        for x in order_list[:k]:
+            if x in atts:
+                hits += 1.0
+
+        count += 1.0
+
+        pres += hits/k
+        recalls += hits/len(atts)
+
+    print 'Top: %d' % int(count)
+    print 'precision: %.3f' % (pres/count)
+    print 'recall: %.3f' % (recalls/count)
 
 
 if __name__=="__main__":
     main()
-
-
-
-
-
-
-
+        

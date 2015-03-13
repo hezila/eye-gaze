@@ -1,0 +1,33 @@
+Spearman Rank Coefficient
+critique vs comparison:
+  price:	0.050
+  battery_life:	0.075
+  display_size:	0.049
+  hard_drive_capacity:	0.194
+  installed_memory:	0.063
+  processor_speed:	0.000
+  weight:	-0.196
+Aggregate: 0.034
+
+critique vs fixation:
+  price:	0.191
+  manufacturer:	-0.071
+  operating_system:	0.087
+  battery_life:	-0.129
+  display_size:	-0.220
+  hard_drive_capacity:	-0.293
+  installed_memory:	0.116
+  processor_class:	0.078
+  processor_speed:	-0.077
+  weight:	-0.083
+Aggregate: -0.040
+
+comparison vs fixation:
+  price:	-0.291
+  battery_life:	0.126
+  display_size:	0.094
+  hard_drive_capacity:	0.221
+  installed_memory:	0.191
+  processor_speed:	0.305
+  weight:	0.043
+Aggregate: 0.098

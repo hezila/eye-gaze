@@ -118,6 +118,9 @@ def parse_session(session, pdb, ax_id, sid, sname, dm):
     cts = {}
     cts_types = {}
 
+    prd_fix_freqs = {}
+    prd_fix_ds = {}
+
     for i, items in enumerate(session):
         if i == 0:
             displayed_pids = items[-1].split('::')
@@ -133,7 +136,7 @@ def parse_session(session, pdb, ax_id, sid, sname, dm):
         if pid == '100':
             pid = '81'
         if pid not in viewed_pids:
-            
+
             viewed_pids.append(pid)
 
         # fixation data
@@ -150,6 +153,13 @@ def parse_session(session, pdb, ax_id, sid, sname, dm):
             else:
                 fix_freqs[ak] += 1.0
                 fix_ds[ak] += d
+
+        if pid not in prd_fix_freqs:
+            prd_fix_freqs[pid] = 1.0
+            prd_fix_ds[pid] = d
+        else:
+            prd_fix_freqs[pid] += 1.0
+            prd_fix_ds[pid] += d
 
         # critiques
         critique_pid = items[31]
@@ -243,6 +253,10 @@ def parse_session(session, pdb, ax_id, sid, sname, dm):
     fix_levels = group_levels(fix_freqs, 3)
     orders = order_dict(fix_freqs)[::-1]
 
+    if critique_pid in prd_fix_freqs:
+        del prd_fix_freqs[critique_pid]
+    prd_ranks = [critique_pid] + order_dict(prd_fix_freqs)[::-1]
+
     print '%s,' % ','.join(['%d' % int(fix_freqs[k]) for k in att_keys]),
     print '%s,' % ','.join(['%d' % int(fix_ds[k]) for k in att_keys]),
     print '%s,' % '::'.join(viewed_pids),
@@ -264,7 +278,9 @@ def parse_session(session, pdb, ax_id, sid, sname, dm):
     for ppid in viewed_pids:
         if ppid not in displayed_pids:
             left.append(ppid)
-    print '%s' % '::'.join(left)
+    print '%s,' % '::'.join(left),
+
+    print '%s' % '::'.join(prd_ranks)
 
     # stats = {}
     # stats['+'] = {"att_num": 0, "avg_freq": 0.0, "avg_dur": 0.0, "vtypes": {1:0, 2:0, 3:0, 4:0}}
@@ -292,7 +308,7 @@ def parse_session(session, pdb, ax_id, sid, sname, dm):
 
 
 
-    
+
 
     last_x = 0
     zs = []
@@ -490,8 +506,8 @@ def main():
                 #     continue
                 # if sid != 9:
 
-                
-                
+
+
                 # print '%d,%s' % (sid, sname),
                 id += 1
                 if not parse_session(session, pdb, id, sid, sname, dm):

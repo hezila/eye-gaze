@@ -77,7 +77,7 @@ def main():
         crit_pid = items[2]
         viewed_pids = items[23].split('::')
 
-        cs = prd_scores(prds[crit_pid], atts)
+
 
         prob = LpProblem('top_rank', LpMaximize)
 
@@ -93,7 +93,13 @@ def main():
 
 
         difs = [0]*7
-        for pid in viewed_pids:
+        int i = 0
+
+        for j, pid in enumerate(ranked_pids[1:]):
+            pi = ranked_pids[i]
+            i = j
+            cs = prd_scores(prds[pi], atts)
+
             pid = pid.strip()
             vprd = prds[pid]
             vs = prd_scores(vprd, atts)
@@ -102,13 +108,11 @@ def main():
             for i in range(7):
                 difs[i] += dfs[i]
 
-            prob += w[0] * dfs[0] + w[1]*dfs[1] + w[2]*dfs[2] + w[3]*dfs[3] + w[4]*dfs[4] + w[5]*dfs[5] + w[6] * dfs[6]  >= 0.0001
+            # prob += w[0] * dfs[0] + w[1]*dfs[1] + w[2]*dfs[2] + w[3]*dfs[3] + w[4]*dfs[4] + w[5]*dfs[5] + w[6] * dfs[6]  >= 0.0001
 
         prob += w[0]*difs[0] + w[1]*difs[1] + w[2]*difs[2] + w[3]*difs[3] + w[4]*difs[4] + w[5]*difs[5] + w[6]*difs[6]
 
-        # prob.writeLP("problem.lp")
-        # print prob
-        # print
+
 
         GLPK().solve(prob)
         # status = prob.solve(GLPK(msg = 0))

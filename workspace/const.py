@@ -92,8 +92,8 @@ def main():
 
     # pprint.pprint(atts)
 
-
-    output = open('crit_perform_viewed.txt', 'w')
+    cmd = options.cmd
+    output = open('crit_perform_%s.txt' % cmd, 'w')
 
     hits = {}
     ground_hits = {}
@@ -103,7 +103,7 @@ def main():
         items = line.strip().split(',')
         crit_pid = items[2]
         viewed_pids = items[23].split('::')
-        disp_pids = items[-1].split('::')
+        disp_pids = items[-2].split('::')
 
         crits = items[24:34]
         new_crits = []

@@ -238,7 +238,14 @@ def parse_session(session, pdb, sid, sname, hits, pred_hits, ground_hits):
 
     # fix_freqs = fix_ds
     # fix_levels = group_levels(fix_freqs, 3)
-    fix_levels = group_2levels(fix_freqs, 2)
+
+    fixes = {}
+    for k in fix_freqs:
+        if fix_freqs[k] > 0:
+            fixes[k] = fix_ds[k] / (fix_freqs[k] + 0.0)
+        else:
+            fixes[k] = 0.0
+    fix_levels = group_2levels(fixes, 2)
 
     # print '%s,' % ','.join(['%d' % int(fix_freqs[k]) for k in att_keys]),
     # print '%s,' % ','.join(['%d' % int(fix_ds[k]) for k in att_keys]),

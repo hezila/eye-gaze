@@ -255,6 +255,11 @@ def parse_session(session, pdb, ax_id, sid, sname, dm):
 
     if critique_pid in prd_fix_freqs:
         del prd_fix_freqs[critique_pid]
+        del prd_fix_ds[critique_pid]
+    prd_fix_avg = {}
+    for pi in prd_fix_freqs:
+        prd_fix_avg[pi] = prd_fix_ds[pi] / prd_fix_freqs[pi]
+
     prd_ranks = [critique_pid] + order_dict(prd_fix_freqs)[::-1]
 
     print '%s,' % ','.join(['%d' % int(fix_freqs[k]) for k in att_keys]),
@@ -280,7 +285,14 @@ def parse_session(session, pdb, ax_id, sid, sname, dm):
             left.append(ppid)
     print '%s,' % '::'.join(left),
 
+    print '%s,' % '::'.join(prd_ranks),
+
+    prd_ranks = [critique_pid] + order_dict(prd_fix_ds)[::-1]
+    print '%s,' % '::'.join(prd_ranks),
+
+    prd_ranks = [critique_pid] + order_dict(prd_fix_avg)[::-1]
     print '%s' % '::'.join(prd_ranks)
+
 
     # stats = {}
     # stats['+'] = {"att_num": 0, "avg_freq": 0.0, "avg_dur": 0.0, "vtypes": {1:0, 2:0, 3:0, 4:0}}

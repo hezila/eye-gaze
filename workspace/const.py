@@ -58,10 +58,6 @@ def main():
     parser.add_option("-a", "--att", dest="atts_file",
         help="the att file")
     parser.add_option('-c', "--cmd", dest="cmd", help="the compaired prds")
-    # parser.add_option('-f', "--fixation", dest="fixation",
-    #     help="the fixation folder")
-    # parser.add_option("-o", "--output", dest="output",
-    #               help="write out to DIR")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
     parser.add_option("-q", "--quiet", action="store_false", dest="verbose")
 
@@ -99,11 +95,14 @@ def main():
     ground_hits = {}
     pred_hits = {}
 
+    valids = 0
+
     for line in open(options.session_file, 'r'):
         items = line.strip().split(',')
         crit_pid = items[2]
         viewed_pids = items[23].split('::')
-        disp_pids = items[-2].split('::')
+        disp_pids = items[-4].split('::')
+
 
         crits = items[24:34]
         new_crits = []
@@ -150,6 +149,8 @@ def main():
         if len(solutions) == 0:
             print 'Oops'
             continue
+
+        valids += 1
         # print solutions[0]
 
         # Borda rank aggregation
@@ -215,6 +216,11 @@ def main():
     tr = tr / 3.0
     print 'p: %.3f, r: %.3f, f1: %.3f' % (tp, tr, 2 * (tp * tr) / (tp + tr))
     output.write('p: %.3f, r: %.3f, f1: %.3f\n' % (tp, tr, 2 * (tp * tr) / (tp + tr)))
+    hit_ratio = sum([hits[t] for t in ['=', '+', '-']]) / (valids * 7 + 0.0)
+    print 'Session: %d' % valids
+    print 'Hit Ratio: %.3f' % hit_ratio
+
+    output.write('Session: %d, hit ratio: %.3f' % (valids, hit_ratio))
     output.close()
 
 if __name__ == '__main__':

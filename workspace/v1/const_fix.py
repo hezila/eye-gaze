@@ -91,6 +91,7 @@ def main():
         help="the att file")
 
     parser.add_option('-f', "--fix", dest="fix", help="the fixation data")
+    parser.add_option('-c', "--cmd", dest="cmd", help="the compaired prds")
     # parser.add_option('-f', "--fixation", dest="fixation",
     #     help="the fixation folder")
     # parser.add_option("-o", "--output", dest="output",
@@ -126,7 +127,7 @@ def main():
     # pprint.pprint(atts)
 
 
-    output = open('crit_perform_attfix_%s.txt' % (options.fix), 'w')
+    output = open('crit_perform_fix_%s_%s.txt' % (options.fix, options.cmd), 'w')
 
     hits = {}
     ground_hits = {}
@@ -177,7 +178,61 @@ def main():
         else:
             fixes = fix_freqs
 
-        ats = order_dict(fixes)[::-1]
+        cmd = options.cmd
+        if cmd == 'disp':
+            for i in disp_pids:
+                if i not in viewed_pids:
+                    viewed_pids.append(i)
+
+
+        prd = prds[crit_pid]
+        cs = prd_scores(prd, atts)
+
+
+        # cm_prds = [prds[pid.strip()] for pid in viewed_pids]
+        print 'o: %d, ' % len(viewed_pids),
+        cm_pids = filter_skyline(crit_pid, viewed_pids, prds)
+        print 'n: %d' % len(cm_pids)
+
+        cm_prds = [prds[pid.strip()] for pid in cm_pids]
+
+
+        prob = Problem()
+        prob.addVariable("w0", range(1, 6))
+        prob.addVariable("w1", range(1, 6))
+        prob.addVariable("w2", range(1, 6))
+        prob.addVariable("w3", range(1, 6))
+        prob.addVariable("w4", range(1, 6))
+        prob.addVariable("w5", range(1, 6))
+        prob.addVariable("w6", range(1, 6))
+
+        for p in cm_prds:
+            vs = prd_scores(p, atts)
+            df = np.array(cs) - np.array(vs)
+            prob.addConstraint(lambda w0, w1, w2, w3, w4, w5, w6: w0 * df[0] + w1*df[1] + w2*df[2] + w3*df[3] + w4*df[4] + w5*df[5] + w6*df[6] > 0)
+        solutions = prob.getSolutions()
+        print 'len: %d'% len(solutions)
+
+        if len(solutions) == 0:
+            print 'Oops'
+            continue
+        # print solutions[0]
+        valids += 1
+        # Borda rank aggregation
+        rank = {}
+        for s in prob.getSolutions():
+            # o = order_dict(s)
+            ws = np.array([v for k, v in s.items()])
+            tau = kendall(fixes, s)
+
+            for wk, wv in s.items():
+                if wk not in rank:
+                    rank[wk] = tau * sum(ws < wv)
+                else:
+                    rank[wk] += tau * sum(ws < wv)
+
+
+        ats = order_dict(rank)[::-1]
         print ats
         preds = ['='] * 7
         for i, a in enumerate(ats):
@@ -186,11 +241,11 @@ def main():
             #
             # ow.append(ak)
             if i <= 1:
-                preds[ai] = '+'
+                preds[ai] = '='
             elif i >= 5:
                 preds[ai] = '-'
             else:
-                preds[ai] = '='
+                preds[ai] = '+'
 
         auc = 0
         for i in range(len(crits)):
@@ -229,9 +284,8 @@ def main():
     tr = tr / 3.0
     print 'p: %.3f, r: %.3f, f1: %.3f' % (tp, tr, 2 * (tp * tr) / (tp + tr))
     output.write('p: %.3f, r: %.3f, f1: %.3f\n' % (tp, tr, 2 * (tp * tr) / (tp + tr)))
-    hit_ratio = sum([hits[t] for t in ['=', '+', '-']]) / (38 * 7 + 0.0)
-    print 'hit ratio: %.3f' % hit_ratio
-    output.write("hit_ratio: %.3f" % (hit_ratio))
+    hit_ratio = sum([hits[t] for t in ['=', '+', '-']]) / (valids * 7 + 0.0)
+    output.write("session: %d, hit_ratio: %.3f" % (valids, hit_ratio))
     output.close()
 
 if __name__ == '__main__':

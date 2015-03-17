@@ -186,11 +186,11 @@ def main():
             #
             # ow.append(ak)
             if i <= 1:
-                preds[ai] = '+'
+                preds[ai] = '='
             elif i >= 5:
                 preds[ai] = '-'
             else:
-                preds[ai] = '='
+                preds[ai] = '+'
 
         auc = 0
         for i in range(len(crits)):

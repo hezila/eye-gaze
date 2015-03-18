@@ -1,0 +1,70 @@
+preds = {}
+has_keep = False # record whether there is keep
+has_plus = False # keep                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+keep_better_than_all = False
+
+for k in fix_levels.keys():
+    fl = fix_levels[k]
+    cl = v_levels[k]
+
+    if fl <= 2:
+        if cl == 1:
+            preds[k] = '='
+            has_keep = True
+            keep_better_than_all = True
+for k in fix_levels.keys():
+    fl = fix_levels[k]
+    cl = v_levels[k]
+
+    if cl == 2:
+        if keep_better_than_all:
+            preds[k] = '+'
+            has_plus = True
+        else:
+            if fl == 1:
+                preds[k] = '='
+                has_keep = True
+            elif fl == 2:
+                preds[k] = '+'
+                has_plus = True
+
+for k in fix_levels.keys():
+    fl = fix_levels[k]
+    cl = v_levels[k]
+
+    if cl == 3:
+        if has_plus:
+            preds[k] = '-'
+        else:
+            preds[k] = '='
+            has_keep = True
+
+for k in att_keys:
+    fl = fix_levels[k]
+    cl = v_levels[k]
+
+    # category
+    if k not in value_keys:
+        if fl == 1:
+            preds[k] = '='
+            has_keep = True
+        elif fl == 2:
+            preds[k] = '+'
+            has_plus = True
+
+for k in fix_levels.keys():
+    fl = fix_levels[k]
+    cl = v_levels[k]
+
+    if fl == 3:
+        if cl == 1 and has_plus:
+            preds[k] = '-'
+        elif cl == 2 and has_plus:
+            preds[k] = '-'
+        elif cl == 4 and has_plus:
+            preds[k] = '-'
+
+        # my own rules
+        if cl == 1 and k not in preds:
+            preds[k] = '='
+            has_keep = True

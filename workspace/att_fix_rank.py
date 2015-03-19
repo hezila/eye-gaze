@@ -153,6 +153,8 @@ def main():
         j = 0
         for i, k in enumerate(att_keys):
             if k in value_keys:
+                if k == 'display_size': continue
+
                 new_crits.append(crits[i].strip())
                 new_fix_freqs['w%d' % j] = fix_freqs[i]
                 new_fix_ds['w%d' % j] = fix_ds[i]
@@ -187,7 +189,7 @@ def main():
             # ow.append(ak)
             if i <= 1:
                 preds[ai] = '+'
-            elif i >= 5:
+            elif i >= 4:
                 preds[ai] = '-'
             else:
                 preds[ai] = '='

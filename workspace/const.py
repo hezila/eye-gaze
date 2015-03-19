@@ -137,12 +137,11 @@ def main():
         prob.addVariable("w3", range(1, 6))
         prob.addVariable("w4", range(1, 6))
         prob.addVariable("w5", range(1, 6))
-        prob.addVariable("w6", range(1, 6))
 
         for p in cm_prds:
             vs = prd_scores(p, atts)
             df = np.array(cs) - np.array(vs)
-            prob.addConstraint(lambda w0, w1, w2, w3, w4, w5, w6: w0 * df[0] + w1*df[1] + w2*df[2] + w3*df[3] + w4*df[4] + w5*df[5] + w6*df[6] > 0)
+            prob.addConstraint(lambda w0, w1, w2, w3, w4, w5: w0 * df[0] + w1*df[1] + w2*df[2] + w3*df[3] + w4*df[4] + w5*df[5]> 0)
         solutions = prob.getSolutions()
         print 'len: %d'% len(solutions)
 
@@ -166,7 +165,7 @@ def main():
 
         ats = order_dict(rank)[::-1]
         print ats
-        preds = ['='] * 7
+        preds = ['='] * 6
         for i, a in enumerate(ats):
             ai = int(a[-1])
             # ak = value_keys[ai]
@@ -174,7 +173,7 @@ def main():
             # ow.append(ak)
             if i <= 1:
                 preds[ai] = '+'
-            elif i >= 5:
+            elif i >= 4:
                 preds[ai] = '-'
             else:
                 preds[ai] = '='
@@ -216,7 +215,7 @@ def main():
     tr = tr / 3.0
     print 'p: %.3f, r: %.3f, f1: %.3f' % (tp, tr, 2 * (tp * tr) / (tp + tr))
     output.write('p: %.3f, r: %.3f, f1: %.3f\n' % (tp, tr, 2 * (tp * tr) / (tp + tr)))
-    hit_ratio = sum([hits[t] for t in ['=', '+', '-']]) / (valids * 7 + 0.0)
+    hit_ratio = sum([hits[t] for t in ['=', '+', '-']]) / (valids * 6 + 0.0)
     print 'Session: %d' % valids
     print 'Hit Ratio: %.3f' % hit_ratio
 

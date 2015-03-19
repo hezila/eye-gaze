@@ -31,9 +31,14 @@ except Exception, e:
 att_keys = ["price", "manufacturer", "operating_system", "battery_life",
         "display_size", "hard_drive_capacity", "installed_memory", "processor_class",
         "processor_speed", "weight"]
+# value_keys = ["price",  "battery_life",
+#         "display_size", "hard_drive_capacity", "installed_memory",
+#         "processor_speed", "weight"]
+
 value_keys = ["price",  "battery_life",
-        "display_size", "hard_drive_capacity", "installed_memory",
+         "hard_drive_capacity", "installed_memory",
         "processor_speed", "weight"]
+
 
 class Session:
     def __init__(self, sid=None, cid=None, selected_id=None, pids=[], prefs={}):
@@ -182,6 +187,24 @@ def prd_scores(prd, atts):
         prd_scores.append(s)
 
     return prd_scores
+
+def prd_6scores(prd, atts):
+    prd_scores = []
+
+    for atk in value_keys:
+        if atk == 'display_size': continue
+        pv = prd[atk]
+
+        at = atts[atk]
+
+        if atk in ['price', 'weight']:
+            s = (at['max'] - pv)/at['range']
+        else:
+            s = (pv - at['min'])/at['range']
+        prd_scores.append(s)
+
+    return prd_scores
+
 
 def score(atk, spec_value, pref, atts):
     v = pref['value']

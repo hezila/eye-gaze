@@ -85,7 +85,8 @@ def main():
     parser.add_option("-a", "--att", dest="atts_file",
         help="the att file")
 
-    parser.add_option('-f', "--fix", dest="fix", help="the product fixation data")
+    parser.add_option('-f', "--pfix", dest="pfix", help="the product fixation data")
+    parser.add_option('-x', "--afix", dest="afix", help="the attribute fixation data")
     # parser.add_option('-f', "--fixation", dest="fixation",
     #     help="the fixation folder")
     # parser.add_option("-o", "--output", dest="output",
@@ -121,7 +122,7 @@ def main():
     # pprint.pprint(atts)
 
 
-    output = open('crit_perform_fix_%s_ranked.txt' % (options.fix), 'w')
+    output = open('crit_perform_fix_p%s_a%s_ranked.txt' % (options.pfix, options.afix), 'w')
 
     hits = {}
     ground_hits = {}
@@ -158,14 +159,28 @@ def main():
         fix_freqs = new_fix_freqs
         fix_ds = new_fix_ds
 
-        fix = options.fix
-        if fix == 'dur':
+        pfix = options.pfix
+        if pfix == 'dur':
             ranked_pids = ds_ranked_pids
-        elif fix == 'avg':
+        elif pfix == 'avg':
             ranked_pids = avg_ranked_pids
         else:
             ranked_pids = freq_ranked_pids
 
+        afix = options.afix
+        if afix == 'dur':
+            fixes = fix_ds
+        elif afix == 'avg':
+            fixes = {}
+            for k in new_fix_freqs.keys():
+                freq = new_fix_freqs[k]
+                # print '%.3f:%.3f' % (freq, new_fix_ds[k])
+                if freq > 0:
+                    fixes[k] = new_fix_ds[k] / (freq + 0.0)
+                else:
+                    fixes[k] = 0.0
+        else:
+            fixes = fix_freqs
 
         # cmd = options.cmd
         # if cmd == 'disp':
@@ -221,8 +236,8 @@ def main():
         for s in prob.getSolutions():
             # o = order_dict(s)
             ws = np.array([v for k, v in s.items()])
-            # tau = kendall(fixes, s)
-            tau = 1.0
+            tau = kendall(fixes, s)
+            # tau = 1.0
 
             for wk, wv in s.items():
                 if wk not in rank:
